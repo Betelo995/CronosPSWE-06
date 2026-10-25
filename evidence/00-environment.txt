@@ -1,0 +1,56 @@
+SDK DE .NET:
+ Version:           10.0.400
+ Commit:            14fbf8d527
+ Workload version:  10.0.400-manifests.b0ae88bd
+ MSBuild version:   18.9.6+14fbf8d52
+
+Entorno de tiempo de ejecución:
+ OS Name:     Windows
+ OS Version:  10.0.26300
+ OS Platform: Windows
+ RID:         win-x64
+ Base Path:   C:\Program Files\dotnet\sdk\10.0.400\
+
+Cargas de trabajo de .NET instaladas:
+No hay cargas de trabajo instaladas para mostrar.
+Configurado para usar workload sets al instalar nuevos manifiestos.
+No hay conjuntos de cargas de trabajo instalados. Ejecute "dotnet workload restore" para instalar un conjunto de carga de trabajo.
+
+Host:
+  Version:      10.0.11
+  Architecture: x64
+  Commit:       e2f47b0110
+
+.NET SDKs installed:
+  10.0.400 [C:\Program Files\dotnet\sdk]
+
+.NET runtimes installed:
+  Microsoft.AspNetCore.App 8.0.30 [C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App]
+  Microsoft.AspNetCore.App 10.0.11 [C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App]
+  Microsoft.NETCore.App 8.0.30 [C:\Program Files\dotnet\shared\Microsoft.NETCore.App]
+  Microsoft.NETCore.App 10.0.11 [C:\Program Files\dotnet\shared\Microsoft.NETCore.App]
+  Microsoft.WindowsDesktop.App 8.0.30 [C:\Program Files\dotnet\shared\Microsoft.WindowsDesktop.App]
+  Microsoft.WindowsDesktop.App 10.0.11 [C:\Program Files\dotnet\shared\Microsoft.WindowsDesktop.App]
+
+Other architectures found:
+  x86   [C:\Program Files (x86)\dotnet]
+    registered at [HKLM\SOFTWARE\dotnet\Setup\InstalledVersions\x86\InstallLocation]
+
+Environment variables:
+  Not set
+
+global.json file:
+  Not found
+
+Learn more:
+  https://aka.ms/dotnet/info
+
+Download .NET:
+  https://aka.ms/dotnet/download
+
+--- DESVIACION REGISTRADA ---
+El prompt pide un SDK .NET 8.x. En esta maquina solo esta instalado el SDK 10.0.400
+(con runtimes Microsoft.NETCore.App 8.0.30 y 10.0.11). Por decision del usuario
+(Roberto, en chat, 2026-10-25) se continua con el SDK 10.0.400 compilando y probando
+el target net8.0, que se ejecuta sobre el runtime 8.0.30. Las advertencias de
+analizadores pueden diferir de las que reportaria un SDK 8.x.

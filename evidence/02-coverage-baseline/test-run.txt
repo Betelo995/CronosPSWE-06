@@ -1,0 +1,13 @@
+  Determinando los proyectos que se van a restaurar...
+  Se ha restaurado C:\Users\Obed\Documents\Curso Calidad de Software\Cronos Avance 2\CronosPSWE-06\tests\Cronos.Tests\Cronos.Tests.csproj (en 462 ms).
+  1 de 2 proyectos están actualizados para la restauración.
+C:\Users\Obed\.nuget\TrustedPackages\system.io.hashing\10.0.12\buildTransitive\netcoreapp2.0\System.IO.Hashing.targets(4,5): warning : System.IO.Hashing 10.0.12 doesn't support net6.0 and has not been tested with it. Consider upgrading your TargetFramework to net8.0 or later. You may also set <SuppressTfmSupportBuildWarnings>true</SuppressTfmSupportBuildWarnings> in the project file to ignore this warning and attempt to run in this unsupported configuration at your own risk. [C:\Users\Obed\Documents\Curso Calidad de Software\Cronos Avance 2\CronosPSWE-06\src\Cronos\Cronos.csproj::TargetFramework=net6.0]
+  Cronos -> C:\Users\Obed\Documents\Curso Calidad de Software\Cronos Avance 2\CronosPSWE-06\src\Cronos\bin\Debug\net6.0\Cronos.dll
+  Cronos.Tests -> C:\Users\Obed\Documents\Curso Calidad de Software\Cronos Avance 2\CronosPSWE-06\tests\Cronos.Tests\bin\Debug\net8.0\Cronos.Tests.dll
+Serie de pruebas para C:\Users\Obed\Documents\Curso Calidad de Software\Cronos Avance 2\CronosPSWE-06\tests\Cronos.Tests\bin\Debug\net8.0\Cronos.Tests.dll (.NETCoreApp,Version=v8.0)
+1 archivos de prueba en total coincidieron con el patrón especificado.
+
+Correctas! - Con error:     0, Superado:  1877, Omitido:     0, Total:  1877, Duración: 7 s - Cronos.Tests.dll (net8.0)
+
+Datos adjuntos:
+  C:\Users\Obed\Documents\Curso Calidad de Software\Cronos Avance 2\CronosPSWE-06\evidence\02-coverage-baseline\raw\2c424c69-ff2b-41d0-99f9-26f30e1972fb\coverage.cobertura.xml
