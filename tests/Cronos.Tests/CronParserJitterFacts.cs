@@ -154,5 +154,18 @@ namespace Cronos.Tests
             Assert.NotNull(star);
             Assert.Throws<CronFormatException>(() => CronExpression.Parse("* * H/29 * *", CronFormat.Standard, JitterSeed));
         }
+
+        [Theory]
+        [InlineData("H * * * *", CronFormat.Standard)]
+        [InlineData("* H * * *", CronFormat.Standard)]
+        [InlineData("* * H * *", CronFormat.Standard)]
+        [InlineData("* * * H *", CronFormat.Standard)]
+        [InlineData("* * * * H", CronFormat.Standard)]
+        [InlineData("H * * * * *", CronFormat.IncludeSeconds)]
+        public void Parse_ThrowsCronFormatExceptionFamily_WhenHashIsPresentAndNoSeedIsProvided(string expression, CronFormat format)
+        {
+            var exception = Assert.ThrowsAny<CronFormatException>(() => CronExpression.Parse(expression, format));
+            Assert.IsType<MissingSeedException>(exception);
+        }
     }
 }
