@@ -36,26 +36,51 @@
 - Cambio de producción: **no**. El tope de 28 es deliberado (comentario "Prevent against calculating the 31st of February").
 - Suite completa: 1940/1940 pasaron, 0 fallaron (`05-coverage-after/test-run.txt`).
 
-### Ciclo 3 — HU-03: mayúsculas y minúsculas en el token `H`
-- **NO EJECUTADO: pendiente de aprobación del equipo.** El prompt condiciona este ciclo a una confirmación explícita en el chat, y no la hubo.
-- La prueba `Parse_AcceptsLowercaseHash_LikeUppercase` (6 casos: `h` frente a `H` en minutos, día del mes y día de la semana, en ambos formatos) quedó preparada en `pending/cycle-3-lowercase-hash.cs.txt`. Ese archivo **no está commiteado ni se compila**.
-- Por lo tanto no hay rojo registrado, ni commit de prueba, ni commit de producción para este ciclo.
+### Ciclo 3A — HU-02: `MissingSeedException` dentro del contrato de `CronFormatException` (rojo → verde real)
+- Aprobación: el equipo lo aprobó en el chat el 2026-10-25.
+- Prueba: `CronParserJitterFacts.Parse_ThrowsCronFormatExceptionFamily_WhenHashIsPresentAndNoSeedIsProvided` (6 casos: `H` en cada campo en Standard, y `H * * * * *` en IncludeSeconds). Usa `Assert.ThrowsAny<CronFormatException>` y además `Assert.IsType<MissingSeedException>`, porque el tipo concreto que se lanza no debe cambiar.
+- Comando: `dotnet test tests/Cronos.Tests/Cronos.Tests.csproj -f net8.0 --filter "FullyQualifiedName~Parse_ThrowsCronFormatExceptionFamily_WhenHashIsPresentAndNoSeedIsProvided" --logger "console;verbosity=normal"`.
+- Primera ejecución: **ROJO** (`07-cycle-3a-red.txt`): `Assert.ThrowsAny() Failure: Exception type was not compatible / Expected: typeof(Cronos.CronFormatException) / Actual: typeof(Cronos.MissingSeedException)`, con `Pruebas totales: 6 / Incorrecto: 6`.
+- Commit de la prueba: `1279165f880378bc92857497264bea7aebb70f77`.
+- **Intento 1 de implementación: FALLIDO, revertido.** El cambio fue `MissingSeedException : CronFormatException` más la eliminación de los dos `catch (MissingSeedException)` de `TryParse` (CS0160). El build falló en los 5 targets con `error CS0108: 'MissingSeedException.BaseMessage' oculta el miembro heredado 'CronFormatException.BaseMessage'`. CS0108 es una advertencia, pero `src/Directory.Build.props` tiene `TreatWarningsAsErrors=true`. Se revirtió con `git checkout -- src/` y se informó al equipo. Las salidas literales están en `07-cycle-3a-attempt1-green.txt`, `07-cycle-3a-attempt1-full-suite.txt` y `07-cycle-3a-attempt1-build-all-targets.txt`, cada una con una línea inicial que explica el fallo.
+- **Corrección aprobada (opción B):** renombrar la constante interna `MissingSeedException.BaseMessage` a `MissingSeedMessage`, con el mismo texto. Se descartó usar `new` porque ocultar un miembro heredado es justo lo que un analizador marca después.
+- Cambio de producción (sí): `src/Cronos/MissingSeedException.cs` (herencia y rename de la constante; 3 inserciones y 3 borrados) y `src/Cronos/CronExpression.cs` (se eliminan los dos `catch (MissingSeedException)`; 10 borrados).
+- Verde después del cambio: build de los 5 targets (net40, net45, netstandard1.0, netstandard2.0, net6.0) con `1 Advertencia(s) / 0 Errores` (System.IO.Hashing; `07-cycle-3a-build-all-targets.txt`). La prueba de 3A.1 dio `Pruebas totales: 6 / Correcto: 6` (`07-cycle-3a-green.txt`).
+- Suite completa: **1946/1946** (`07-cycle-3a-full-suite.txt`). Siguen pasando `Parse_ThrowsAnException_WhenHashIsPresentAndNoRandomIsProvided` (usa `Assert.Throws<MissingSeedException>`, tipo exacto) y `TryParse_ReturnsFalse_WhenHashIsPresentAndNoRandomIsProvided` (ahora lo atrapa el `catch (CronFormatException)`).
+- Commit de la implementación (incluye las salidas del intento fallido): `b3d4e786ee8cbfee82b110ff2c5a1233ebc1b76e`.
+- Lectura TDD: rojo → implementación fallida por CS0108 → corrección → verde. La red de pruebas y el build estricto detectaron el problema antes de integrar.
+
+### Ciclo 3B — HU-03: `h` minúscula aceptada como `H`, igual que `L` y `W` (rojo → verde real)
+- Aprobación: el equipo lo aprobó en el chat el 2026-10-25. La prueba preparada en `pending/` se incorporó al archivo de pruebas y la carpeta se borró.
+- Prueba: `CronParserJitterFacts.Parse_AcceptsLowercaseHash_LikeUppercase` (8 casos: `h * * * *`, `* * h * *`, `* * * * h`, `h/15 * * * *` y sus variantes IncludeSeconds). Verifica `Assert.Equal(Parse(upper, format, 3), Parse(lower, format, 3))`.
+- Comando: `dotnet test ... -f net8.0 --filter "FullyQualifiedName~Parse_AcceptsLowercaseHash_LikeUppercase" --logger "console;verbosity=normal"`.
+- Primera ejecución: **ROJO** (`08-cycle-3b-red.txt`), `Pruebas totales: 8 / Incorrecto: 8`, todos con `Cronos.CronFormatException`: "Minutes: Value must be a number between 0 and 59" (×4), "Days of month: Value must be a number between 1 and 31" (×2) y "Days of week: Value must be a number between 0 and 7" (×2).
+- Commit de la prueba: `8ba0cb4d6a8dba1f9cedd00ab34683202d802519`.
+- Cambio de producción (sí): en `src/Cronos/CronParser.cs`, las 3 ocurrencias de `Accept(ref pointer, 'H')` en `ParseField`, `ParseDayOfMonth` y `ParseDayOfWeek` pasan a `AcceptCharacter(ref pointer, 'H')` (3 inserciones y 3 borrados).
+- Verde: `Pruebas totales: 8 / Correcto: 8` (`08-cycle-3b-green.txt`).
+- Suite completa: **1954/1954** (`08-cycle-3b-full-suite.txt`). Se comprobó que los 330 casos de `Parse_ThrowsCronFormatException_WhenCronExpressionIsInvalid` dan el mismo resultado antes (07) y después (08): 330/330 correctas. Los únicos casos con `h` minúscula son macros (`@hour`), que se procesan en `ParseMacro`.
+- Commit de la implementación: `2f68fa2a63476ac5a29271262f86b2d77869ef43`.
+- Documentación: en la sección "Jitter" del README se agregó que `H` no distingue mayúsculas y que `MissingSeedException` deriva de `CronFormatException`. Commit `87723d0f3e4d1374292f4e2946a2ab244d4554e7`.
 
 ## Estado después del incremento
-- Pruebas: total **1940** / pasaron **1940** / fallaron **0** (+63 pruebas nuevas, todas de `CronParserJitterFacts`).
-- Cobertura de CronParser: líneas **99.4 %** (379/381, delta 0), ramas **97.9 %** (284/290, delta 0). Detalle en `05-coverage-after/cronparser-delta.md`. El cambio observable está en los hits de `ParseHashStep`: L405 y L410 pasaron de 28/28 a 64/50, es decir, 14 ejecuciones nuevas del camino de rechazo de `H/n`.
-- Advertencias de analizadores (`06-analyzers-after.txt`): **CA: 0, IDE: 0, CS: 0. Delta: 0.** Era lo esperado, porque no hubo cambios de producción. El conteo del script dice "2 occurrences" sin código de regla, pero es la misma advertencia de System.IO.Hashing de la línea base, que MSBuild imprime en línea y otra vez en el resumen.
-- En `tests` (fuera del alcance del script), el archivo nuevo genera 5 apariciones de CA1707 por los guiones bajos en los nombres. Es la misma convención que usa `CronExpressionFacts.cs`.
+- Pruebas: **1877 → 1940 (ciclos 1-2) → 1954 (final)**. Al final pasan 1954 y fallan 0 (`09-coverage-final/test-run.txt`). Las 77 pruebas nuevas están en `CronParserJitterFacts`.
+- Cobertura de CronParser (`09-coverage-final/cronparser-delta.md`): líneas **99.4 %** (379/381) y ramas **97.9 %** (284/290) en los tres momentos; delta 0. En el ensamblado, las líneas suben de 92.1 % a 92.4 % porque 3A **eliminó** 8 líneas coberturables de `CronExpression.TryParse`. Uno de los dos `catch` borrados era código muerto. Las ramas del ensamblado quedan en 653/716.
+- Advertencias de analizadores en producción: CA 0 / IDE 0 / CS 0 en la línea base (03), después de los ciclos 1-2 (06) y al final (10). **Delta 0.** En la corrida final se recompiló el código modificado (`10-analyzers-final.txt`).
+- En `tests` (fuera del alcance del script), el archivo nuevo sigue la convención de nombres con guiones bajos y genera CA1707, igual que `CronExpressionFacts.cs`.
 
 ## Hallazgos para el informe
-- **`MissingSeedException` no hereda de `CronFormatException`** (hereda de `System.Exception`). Un consumidor que solo capture `CronFormatException` no la atrapa, y su proceso puede terminar con una excepción no controlada. Además, cuando `H` está al inicio de un campo, la falta de seed se comprueba (CronParser.cs L348) **antes** de validar la sintaxis que sigue: `H-5 * * * *` sin seed informa "requires providing a jitter seed" y no el rango inválido. En cambio `1,H` sin seed lanza `CronFormatException`. El tipo de excepción depende de la posición de `H` (18 de 20 casos frente a 2 de 20).
-- **Tope de 28 en `H/n` para el día del mes, contra 1-31 documentado.** `* * */29 * *` se acepta y `* * H/29 * *` lanza "between 1 and 28". La decisión es deliberada, pero ni el README ni la tabla de caracteres especiales la documentan. Ahora queda fijada como caracterización en `Parse_StepUpperBoundDiffersBetweenStarAndHash_InDayOfMonth`.
-- **Mayúsculas y minúsculas en `H`:** en el código (L285, L301, L324) `H` se acepta con `Accept`, que distingue mayúsculas, mientras que `L` y `W` usan `AcceptCharacter`, que no las distingue. Estado después del incremento: **sin cambios**. El ciclo 3 sigue pendiente de aprobación y no se ejecutó la prueba que demostraría el rojo.
-- **La cobertura estructural no revela la brecha de `H`.** `ParseHash` y `ParseHashStep` ya estaban al 100 % de líneas y ramas antes del incremento, aunque ninguna prueba ejercitaba el rechazo de `H/n` ni la sintaxis inválida alrededor de `H`. Las 63 pruebas nuevas no cambian el porcentaje. Para HU-04, la cobertura de líneas y ramas no basta como criterio de adecuación.
+- **`MissingSeedException` no heredaba de `CronFormatException`: CORREGIDO en el ciclo 3A.** Un consumidor que capturara solo `CronFormatException` dejaba escapar el caso `H` sin seed. Ahora la jerarquía es `MissingSeedException : CronFormatException : FormatException`. El tipo lanzado no cambió y el mensaje tampoco. Se mantiene un matiz: con `H` al inicio de un campo, la falta de seed se comprueba (CronParser.cs L348) **antes** de validar la sintaxis que sigue. `H-5 * * * *` sin seed informa la falta de seed y no el rango inválido, pero ahora ambos casos son `CronFormatException`.
+- **Impacto en la API pública de 3A:** es un cambio de jerarquía de una clase pública. Es compatible para quien capture `CronFormatException`, `FormatException` o `MissingSeedException`. Si algún consumidor tenía `catch (CronFormatException)` seguido de `catch (MissingSeedException)`, ahora obtendrá CS0160 al recompilar, igual que pasó en el propio `TryParse`. Conviene mencionarlo en las notas de versión.
+- **Tope de 28 en `H/n` para el día del mes, contra 1-31 documentado:** sigue como caracterización (`Parse_StepUpperBoundDiffersBetweenStarAndHash_InDayOfMonth`). No se cambió ni se documentó en el README; queda pendiente de decisión.
+- **Mayúsculas en `H`: CORREGIDO en el ciclo 3B.** Antes, `h` producía `CronFormatException` mientras que `l`, `w` y `lw` se aceptaban. Ahora `h` es equivalente a `H` en todos los campos y con paso (`h/15`).
+- **El intento 1 de 3A falló por CS0108:** las dos excepciones declaraban `internal const string BaseMessage`. Lo detectó el build estricto (`TreatWarningsAsErrors`) en los 5 targets, se revirtió y se corrigió con un rename. Es evidencia de refactorización bajo pruebas.
+- **La cobertura estructural no detectó ninguno de los dos defectos corregidos.** `ParseHash` y `ParseHashStep` estaban al 100 % de líneas y ramas, y la cobertura de `CronParser` no se movió en todo el incremento. Para HU-04, la cobertura de líneas y ramas no basta como criterio de adecuación.
 - Otros comportamientos observados:
-  - Rama no cubierta en la línea base: `@midnight` **con** seed (CronParser.cs L197, 1/2 ramas). Es una brecha pequeña fuera del alcance de `H`.
-  - `dotnet build Cronos.sln -f net6.0` falla por NETSDK1005 en `benchmarks/` (falla previa, no relacionada).
-  - `tools/` está en `.gitignore` (`[Tt]ools/`). `tools/static-analysis.ps1` se agregó con `git add -f` sin modificar `.gitignore`.
+  - Rama no cubierta: `@midnight` **con** seed (CronParser.cs L197).
+  - El `catch (MissingSeedException)` del `TryParse` con seed era código muerto (eliminado en 3A).
+  - `dotnet build Cronos.sln -f net6.0` falla por NETSDK1005 en `benchmarks/` (falla previa).
+  - `tools/` está en `.gitignore`, así que el script se agregó con `git add -f`.
+  - ReportGenerator requiere instalarse desde fuera del repo por la política de firmas de `NuGet.config` (ver Entorno).
 
 ## Criterios de aceptación: cumplidos y pendientes
 
@@ -65,9 +90,9 @@
 | HU-01 | Los valores en el límite superior (`H/59`, `H/23`, `H/28`, `H/12`, `H/7`) se aceptan de forma determinista | Cumplido (caracterización) | `04-cycle-2-result.txt` |
 | HU-01 | El contrato documentado (1-31) coincide con el real para `H/n` en el día del mes | Pendiente (brecha documentada; requiere decisión: corregir el README o el código) | `Parse_StepUpperBoundDiffersBetweenStarAndHash_InDayOfMonth` |
 | HU-02 | Las expresiones con `H` mal formada (`H-5`, `H,10`, `H5`, `1,H`, `H/`, `H#2`, `HW`, `HL`) se rechazan con `CronFormatException`, con el campo en el mensaje | Cumplido (caracterización) | `04-cycle-1-result.txt`, commit `7e529a5` |
-| HU-02 | Rechazo controlado sin seed: siempre una excepción de formato capturable | Parcial (18/20 lanzan `MissingSeedException`, que no es `CronFormatException`) | `04-cycle-1-no-seed-detail.txt` |
+| HU-02 | Cada expresión inválida provoca el tipo de error del contrato público (`CronFormatException`), incluido `H` sin seed | **Cumplido (ciclo 3A, rojo → verde)** | `07-cycle-3a-red.txt`, `07-cycle-3a-green.txt`, `07-cycle-3a-full-suite.txt`, commits `1279165` y `b3d4e78` |
 | HU-03 | Los límites de pasos y su combinación con campos se validan por campo | Cumplido (caracterización) | `04-cycle-2-result.txt` |
-| HU-03 | Validación consistente de mayúsculas y minúsculas para `H`, igual que para `L` y `W` | Pendiente (ciclo 3 sin aprobación) | `pending/cycle-3-lowercase-hash.cs.txt` (no commiteado) |
-| HU-04 | Medición reproducible de cobertura de líneas y ramas (coverlet + ReportGenerator, manifiesto local) | Cumplido (ReportGenerator requiere el procedimiento de instalación descrito en Entorno) | `02-coverage-baseline/`, `05-coverage-after/`, commit `23b6732` |
-| HU-04 | La cobertura guía la ubicación de las pruebas y se compara antes y después | Cumplido | `02-coverage-baseline/cronparser-uncovered.md`, `05-coverage-after/cronparser-delta.md` |
-| Transversal | Análisis estático configurado en el repo y ejecutable con un script, sin advertencias nuevas | Cumplido (delta 0) | `.editorconfig`, `tools/static-analysis.ps1`, `03-*`, `06-analyzers-after.txt`, commit `39912c7` |
+| HU-03 | Validación consistente de mayúsculas y minúsculas para `H`, igual que para `L` y `W` | **Cumplido (ciclo 3B, rojo → verde)** | `08-cycle-3b-red.txt`, `08-cycle-3b-green.txt`, `08-cycle-3b-full-suite.txt`, commits `8ba0cb4` y `2f68fa2` |
+| HU-04 | Medición reproducible de cobertura de líneas y ramas (coverlet + ReportGenerator, manifiesto local) | Cumplido (ReportGenerator requiere el procedimiento de instalación descrito en Entorno) | `02-coverage-baseline/`, `05-coverage-after/`, `09-coverage-final/`, commit `23b6732` |
+| HU-04 | La cobertura guía la ubicación de las pruebas y se compara entre momentos | Cumplido (base, ciclos 1-2 y final) | `02-.../cronparser-uncovered.md`, `05-.../cronparser-delta.md`, `09-.../cronparser-delta.md` |
+| Transversal | Análisis estático configurado en el repo y ejecutable con un script, sin advertencias nuevas | Cumplido (delta 0 en los tres momentos) | `.editorconfig`, `tools/static-analysis.ps1`, `03-*`, `06-*`, `10-analyzers-final.txt`, commit `39912c7` |
