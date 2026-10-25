@@ -102,5 +102,57 @@ namespace Cronos.Tests
                 exception is CronFormatException || exception is MissingSeedException,
                 $"Unexpected exception type {exception.GetType().FullName}: {exception.Message}");
         }
+
+        [Theory]
+        [InlineData("H/59 * * * * *", CronFormat.IncludeSeconds)]
+        [InlineData("H/59 * * * *", CronFormat.Standard)]
+        [InlineData("* H/59 * * * *", CronFormat.IncludeSeconds)]
+        [InlineData("* H/23 * * *", CronFormat.Standard)]
+        [InlineData("* * H/23 * * *", CronFormat.IncludeSeconds)]
+        [InlineData("* * H/28 * *", CronFormat.Standard)]
+        [InlineData("* * * H/28 * *", CronFormat.IncludeSeconds)]
+        [InlineData("* * * H/12 *", CronFormat.Standard)]
+        [InlineData("* * * * H/12 *", CronFormat.IncludeSeconds)]
+        [InlineData("* * * * H/7", CronFormat.Standard)]
+        [InlineData("* * * * * H/7", CronFormat.IncludeSeconds)]
+        public void Parse_AcceptsHashStep_AtDocumentedUpperBound(string expression, CronFormat format)
+        {
+            var first = CronExpression.Parse(expression, format, JitterSeed);
+            var second = CronExpression.Parse(expression, format, JitterSeed);
+
+            Assert.Equal(first, second);
+            Assert.NotNull(first.GetNextOccurrence(new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc)));
+        }
+
+        [Theory]
+        [InlineData("H/60 * * * * *", CronFormat.IncludeSeconds, "Seconds", "between 1 and 59")]
+        [InlineData("H/60 * * * *", CronFormat.Standard, "Minutes", "between 1 and 59")]
+        [InlineData("* H/60 * * * *", CronFormat.IncludeSeconds, "Minutes", "between 1 and 59")]
+        [InlineData("* H/24 * * *", CronFormat.Standard, "Hours", "between 1 and 23")]
+        [InlineData("* * H/24 * * *", CronFormat.IncludeSeconds, "Hours", "between 1 and 23")]
+        [InlineData("* * H/29 * *", CronFormat.Standard, "Days of month", "between 1 and 28")]
+        [InlineData("* * * H/29 * *", CronFormat.IncludeSeconds, "Days of month", "between 1 and 28")]
+        [InlineData("* * * H/13 *", CronFormat.Standard, "Months", "between 1 and 12")]
+        [InlineData("* * * * H/13 *", CronFormat.IncludeSeconds, "Months", "between 1 and 12")]
+        [InlineData("* * * * H/8", CronFormat.Standard, "Days of week", "between 1 and 7")]
+        [InlineData("* * * * * H/8", CronFormat.IncludeSeconds, "Days of week", "between 1 and 7")]
+        public void Parse_ThrowsCronFormatException_WhenHashStepExceedsFieldRange(string expression, CronFormat format, string field, string expectedRange)
+        {
+            var exception = Assert.Throws<CronFormatException>(() => CronExpression.Parse(expression, format, JitterSeed));
+
+            Assert.Contains(field, exception.Message, StringComparison.Ordinal);
+            Assert.Contains(expectedRange, exception.Message, StringComparison.Ordinal);
+        }
+
+        // Characterization: H/n in day-of-month is capped at 28 (to avoid the 31st of February),
+        // while */n allows up to 31 as documented in the README ("1-31").
+        [Fact]
+        public void Parse_StepUpperBoundDiffersBetweenStarAndHash_InDayOfMonth()
+        {
+            var star = CronExpression.Parse("* * */29 * *", CronFormat.Standard, JitterSeed);
+
+            Assert.NotNull(star);
+            Assert.Throws<CronFormatException>(() => CronExpression.Parse("* * H/29 * *", CronFormat.Standard, JitterSeed));
+        }
     }
 }
