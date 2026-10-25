@@ -282,7 +282,7 @@ namespace Cronos
                 return ParseStar(field, ref pointer);
             }
             
-            if (Accept(ref pointer, 'H')) return ParseHash(field, ref pointer, ref flags, rng);
+            if (AcceptCharacter(ref pointer, 'H')) return ParseHash(field, ref pointer, ref flags, rng);
 
             var num = ParseValue(field, ref pointer);
 
@@ -298,7 +298,7 @@ namespace Cronos
 
             if (Accept(ref pointer, '*') || Accept(ref pointer, '?')) return ParseStar(field, ref pointer);
             
-            if (Accept(ref pointer, 'H')) return ParseHash(field, ref pointer, ref flags, rng);
+            if (AcceptCharacter(ref pointer, 'H')) return ParseHash(field, ref pointer, ref flags, rng);
 
             if (AcceptCharacter(ref pointer, 'L')) return ParseLastDayOfMonth(field, ref pointer, ref flags, ref lastDayOffset);
 
@@ -321,7 +321,7 @@ namespace Cronos
             var field = CronField.DaysOfWeek;
             if (Accept(ref pointer, '*') || Accept(ref pointer, '?')) return ParseStar(field, ref pointer);
             
-            if (Accept(ref pointer, 'H')) return ParseHash(field, ref pointer, ref flags, rng);
+            if (AcceptCharacter(ref pointer, 'H')) return ParseHash(field, ref pointer, ref flags, rng);
 
             var dayOfWeek = ParseValue(field, ref pointer);
 
