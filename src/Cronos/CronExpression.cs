@@ -267,11 +267,6 @@ namespace Cronos
                 cronExpression = null;
                 return false;
             }
-            catch (MissingSeedException)
-            {
-                cronExpression = null;
-                return false;
-            }
         }
 
         /// <summary>
@@ -293,11 +288,6 @@ namespace Cronos
                 return true;
             }
             catch (CronFormatException)
-            {
-                cronExpression = null;
-                return false;
-            }
-            catch (MissingSeedException)
             {
                 cronExpression = null;
                 return false;

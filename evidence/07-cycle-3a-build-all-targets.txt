@@ -1,0 +1,16 @@
+  Determinando los proyectos que se van a restaurar...
+  Todos los proyectos están actualizados para la restauración.
+C:\Users\Obed\.nuget\TrustedPackages\system.io.hashing\10.0.12\buildTransitive\netcoreapp2.0\System.IO.Hashing.targets(4,5): warning : System.IO.Hashing 10.0.12 doesn't support net6.0 and has not been tested with it. Consider upgrading your TargetFramework to net8.0 or later. You may also set <SuppressTfmSupportBuildWarnings>true</SuppressTfmSupportBuildWarnings> in the project file to ignore this warning and attempt to run in this unsupported configuration at your own risk. [C:\Users\Obed\Documents\Curso Calidad de Software\Cronos Avance 2\CronosPSWE-06\src\Cronos\Cronos.csproj::TargetFramework=net6.0]
+  Cronos -> C:\Users\Obed\Documents\Curso Calidad de Software\Cronos Avance 2\CronosPSWE-06\src\Cronos\bin\Debug\net45\Cronos.dll
+  Cronos -> C:\Users\Obed\Documents\Curso Calidad de Software\Cronos Avance 2\CronosPSWE-06\src\Cronos\bin\Debug\netstandard1.0\Cronos.dll
+  Cronos -> C:\Users\Obed\Documents\Curso Calidad de Software\Cronos Avance 2\CronosPSWE-06\src\Cronos\bin\Debug\net40\Cronos.dll
+  Cronos -> C:\Users\Obed\Documents\Curso Calidad de Software\Cronos Avance 2\CronosPSWE-06\src\Cronos\bin\Debug\netstandard2.0\Cronos.dll
+  Cronos -> C:\Users\Obed\Documents\Curso Calidad de Software\Cronos Avance 2\CronosPSWE-06\src\Cronos\bin\Debug\net6.0\Cronos.dll
+
+Compilación correcta.
+
+C:\Users\Obed\.nuget\TrustedPackages\system.io.hashing\10.0.12\buildTransitive\netcoreapp2.0\System.IO.Hashing.targets(4,5): warning : System.IO.Hashing 10.0.12 doesn't support net6.0 and has not been tested with it. Consider upgrading your TargetFramework to net8.0 or later. You may also set <SuppressTfmSupportBuildWarnings>true</SuppressTfmSupportBuildWarnings> in the project file to ignore this warning and attempt to run in this unsupported configuration at your own risk. [C:\Users\Obed\Documents\Curso Calidad de Software\Cronos Avance 2\CronosPSWE-06\src\Cronos\Cronos.csproj::TargetFramework=net6.0]
+    1 Advertencia(s)
+    0 Errores
+
+Tiempo transcurrido 00:00:02.79
