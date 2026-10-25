@@ -167,5 +167,22 @@ namespace Cronos.Tests
             var exception = Assert.ThrowsAny<CronFormatException>(() => CronExpression.Parse(expression, format));
             Assert.IsType<MissingSeedException>(exception);
         }
+
+        [Theory]
+        [InlineData("h * * * *", "H * * * *", CronFormat.Standard)]
+        [InlineData("* * h * *", "* * H * *", CronFormat.Standard)]
+        [InlineData("* * * * h", "* * * * H", CronFormat.Standard)]
+        [InlineData("h/15 * * * *", "H/15 * * * *", CronFormat.Standard)]
+        [InlineData("* h * * * *", "* H * * * *", CronFormat.IncludeSeconds)]
+        [InlineData("* * * h * *", "* * * H * *", CronFormat.IncludeSeconds)]
+        [InlineData("* * * * * h", "* * * * * H", CronFormat.IncludeSeconds)]
+        [InlineData("* h/15 * * * *", "* H/15 * * * *", CronFormat.IncludeSeconds)]
+        public void Parse_AcceptsLowercaseHash_LikeUppercase(string lower, string upper, CronFormat format)
+        {
+            var expected = CronExpression.Parse(upper, format, JitterSeed);
+            var actual = CronExpression.Parse(lower, format, JitterSeed);
+
+            Assert.Equal(expected, actual);
+        }
     }
 }
