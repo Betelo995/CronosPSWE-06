@@ -33,14 +33,14 @@ namespace Cronos
 #if !NETSTANDARD1_0
     [Serializable]
 #endif
-    public class MissingSeedException : Exception
+    public class MissingSeedException : CronFormatException
     {
-        internal const string BaseMessage = "Using H in the format requires providing a jitter seed.";
+        internal const string MissingSeedMessage = "Using H in the format requires providing a jitter seed.";
 
         /// <summary>
         /// Initializes a new instance of the <see cref="MissingSeedException"/> class.
         /// </summary>
-        public MissingSeedException() : this(BaseMessage)
+        public MissingSeedException() : this(MissingSeedMessage)
         {
         }
         

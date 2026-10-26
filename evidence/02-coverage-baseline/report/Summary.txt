@@ -1,0 +1,30 @@
+Summary
+  Generated on: 25/10/2026 - 11:41:15
+  Coverage date: 25/10/2026 - 11:41:13
+  Parser: Cobertura
+  Assemblies: 1
+  Classes: 8
+  Files: 8
+  Line coverage: 92.1%
+  Covered lines: 1142
+  Uncovered lines: 97
+  Coverable lines: 1239
+  Total lines: 2446
+  Branch coverage: 91.2% (653 of 716)
+  Covered branches: 653
+  Total branches: 716
+  Method coverage: 92.5% (125 of 135)
+  Full method coverage: 85.9% (116 of 135)
+  Covered methods: 125
+  Fully covered methods: 116
+  Total methods: 135
+
+Cronos                          92.1%
+  Cronos.CalendarHelper          100%
+  Cronos.CronExpression         87.6%
+  Cronos.CronField               100%
+  Cronos.CronFormatException      25%
+  Cronos.CronParser             99.4%
+  Cronos.DateTimeHelper          100%
+  Cronos.MissingSeedException     50%
+  Cronos.TimeZoneHelper          100%

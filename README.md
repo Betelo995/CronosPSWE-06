@@ -277,7 +277,7 @@ Nov 09, 01:30 +03:00 – run
 <a name="jitter"></a>
 ## Jitter
 
-Cronos supports the ability to distribute cron fields randomly in order to spread out system load over time, a feature called "schedule jitter". You can opt into this capability by passing in a seed for a random number generator and optionally using the special character `H` in a cron expression. Using `H` in an expression while failing to provide a seed will throw an exception.
+Cronos supports the ability to distribute cron fields randomly in order to spread out system load over time, a feature called "schedule jitter". You can opt into this capability by passing in a seed for a random number generator and optionally using the special character `H` in a cron expression. Using `H` in an expression while failing to provide a seed will throw an exception. Like `L` and `W`, the `H` character is case-insensitive, so `h` is accepted as well. The exception thrown for a missing seed, `MissingSeedException`, derives from `CronFormatException`, so code that catches `CronFormatException` also handles this case.
 
 Example API usages:
 
