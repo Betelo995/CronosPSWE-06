@@ -7,7 +7,7 @@
 - Sistema operativo: Windows 11 Pro 10.0.26300 (win-x64).
 - Fecha: 2026-10-25.
 - Commit base del fork: `11234183dd5db3795b0b34710b75f8df120847e6` (2026-09-10, "chore: Fix typo in job-scheduling example comment (#98)"). Coincide con el esperado (`00-base-commit.txt`).
-- Rama de trabajo: `feature/parser-jitter-validation` (solo local, sin upstream, sin push).
+- Rama de trabajo: `feature/parser-jitter-validation`.
 
 ## Línea base
 - Pruebas (`01-baseline-tests.txt`): total **1877** / pasaron **1877** / fallaron **0** / omitidas **0** / duración **6,7912 s**.
@@ -74,7 +74,7 @@
 - **Tope de 28 en `H/n` para el día del mes, contra 1-31 documentado:** sigue como caracterización (`Parse_StepUpperBoundDiffersBetweenStarAndHash_InDayOfMonth`). No se cambió ni se documentó en el README; queda pendiente de decisión.
 - **Mayúsculas en `H`: CORREGIDO en el ciclo 3B.** Antes, `h` producía `CronFormatException` mientras que `l`, `w` y `lw` se aceptaban. Ahora `h` es equivalente a `H` en todos los campos y con paso (`h/15`).
 - **El intento 1 de 3A falló por CS0108:** las dos excepciones declaraban `internal const string BaseMessage`. Lo detectó el build estricto (`TreatWarningsAsErrors`) en los 5 targets, se revirtió y se corrigió con un rename. Es evidencia de refactorización bajo pruebas.
-- **La cobertura estructural no detectó ninguno de los dos defectos corregidos.** `ParseHash` y `ParseHashStep` estaban al 100 % de líneas y ramas, y la cobertura de `CronParser` no se movió en todo el incremento. Para HU-04, la cobertura de líneas y ramas no basta como criterio de adecuación.
+- **La cobertura estructural no detectó ninguno de los dos defectos corregidos.** `ParseHash` y `ParseHashStep` estaban al 100 % de líneas y ramas, y la cobertura de `CronParser` no se movió en todo el incremento. Como herramienta de apoyo del proceso, la cobertura de líneas y ramas sirvió para ubicar las pruebas, pero no basta como criterio de adecuación.
 - Otros comportamientos observados:
   - Rama no cubierta: `@midnight` **con** seed (CronParser.cs L197).
   - El `catch (MissingSeedException)` del `TryParse` con seed era código muerto (eliminado en 3A).
@@ -83,6 +83,8 @@
   - ReportGenerator requiere instalarse desde fuera del repo por la política de firmas de `NuGet.config` (ver Entorno).
 
 ## Criterios de aceptación: cumplidos y pendientes
+
+Las historias del incremento son **HU-01, HU-02 y HU-03**. Por la retroalimentación del profesor al avance 1, la medición de cobertura (antes planteada como HU-04) se reclasifica como **herramienta de apoyo del proceso** y no como historia. Sus datos se conservan completos en la subsección "Cobertura como herramienta de apoyo".
 
 | HU | Criterio | Estado | Evidencia |
 |---|---|---|---|
@@ -93,6 +95,22 @@
 | HU-02 | Cada expresión inválida provoca el tipo de error del contrato público (`CronFormatException`), incluido `H` sin seed | **Cumplido (ciclo 3A, rojo → verde)** | `07-cycle-3a-red.txt`, `07-cycle-3a-green.txt`, `07-cycle-3a-full-suite.txt`, commits `1279165` y `b3d4e78` |
 | HU-03 | Los límites de pasos y su combinación con campos se validan por campo | Cumplido (caracterización) | `04-cycle-2-result.txt` |
 | HU-03 | Validación consistente de mayúsculas y minúsculas para `H`, igual que para `L` y `W` | **Cumplido (ciclo 3B, rojo → verde)** | `08-cycle-3b-red.txt`, `08-cycle-3b-green.txt`, `08-cycle-3b-full-suite.txt`, commits `8ba0cb4` y `2f68fa2` |
-| HU-04 | Medición reproducible de cobertura de líneas y ramas (coverlet + ReportGenerator, manifiesto local) | Cumplido (ReportGenerator requiere el procedimiento de instalación descrito en Entorno) | `02-coverage-baseline/`, `05-coverage-after/`, `09-coverage-final/`, commit `23b6732` |
-| HU-04 | La cobertura guía la ubicación de las pruebas y se compara entre momentos | Cumplido (base, ciclos 1-2 y final) | `02-.../cronparser-uncovered.md`, `05-.../cronparser-delta.md`, `09-.../cronparser-delta.md` |
 | Transversal | Análisis estático configurado en el repo y ejecutable con un script, sin advertencias nuevas | Cumplido (delta 0 en los tres momentos) | `.editorconfig`, `tools/static-analysis.ps1`, `03-*`, `06-*`, `10-analyzers-final.txt`, commit `39912c7` |
+
+### Cobertura como herramienta de apoyo
+
+La cobertura no es una historia del incremento. Se usó para ubicar dónde escribir pruebas y para comparar el estado del parser entre momentos. Herramientas: coverlet.collector 10.1.0 y ReportGenerator 5.5.11 (manifiesto local `dotnet-tools.json`, commit `23b6732`). ReportGenerator requiere el procedimiento de instalación descrito en Entorno.
+
+| Aspecto | Resultado | Evidencia |
+|---|---|---|
+| Medición reproducible de líneas y ramas | Disponible en tres momentos: base, después de los ciclos 1-2 y final | `02-coverage-baseline/`, `05-coverage-after/`, `09-coverage-final/` |
+| Ubicación de las pruebas | Señaló `ParseHash` (L345-363) y `ParseHashStep` (L402-412), ya al 100 % de líneas y ramas | `02-coverage-baseline/cronparser-uncovered.md` |
+| CronParser, líneas | 379/381 (99.4 %) en los tres momentos | `05-.../cronparser-delta.md`, `09-.../cronparser-delta.md` |
+| CronParser, ramas | 284/290 (97.9 %) en los tres momentos | ídem |
+| Ensamblado Cronos, líneas | 92.1 % → 92.1 % → 92.4 % (1142/1239 → 1142/1239 → 1138/1231; 3A eliminó 8 líneas de `TryParse`) | `09-.../cronparser-delta.md` |
+| Ensamblado Cronos, ramas | 653/716 (91.2 %) en los tres momentos | ídem |
+| Hits en ParseHashStep (L405 / L410) | 28/28 → 64/50 → 68/54. El camino de rechazo de `H/n` se ejercita desde el ciclo 2 | ídem |
+| Sin cubrir en todos los momentos | L464 y L474 (inalcanzables); ramas parciales en L38, L197 (`@midnight` con seed) y L220 | `02-.../cronparser-uncovered.md` |
+| Conclusión | La cobertura estructural no detectó los defectos corregidos en 3A y 3B. Hay que complementarla con partición de equivalencia, valores límite y pruebas de mutación | `09-.../cronparser-delta.md` |
+
+Nota: los archivos `02-.../cronparser-uncovered.md`, `05-.../cronparser-delta.md` y `09-.../cronparser-delta.md` conservan su redacción original, que menciona "HU-04". Esa etiqueta corresponde al planteamiento del avance 1 y queda reemplazada por esta clasificación.
